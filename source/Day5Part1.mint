@@ -1,0 +1,172 @@
+/*
+---- Day 5: Supply Stacks ---
+
+The expedition can depart as soon as the final supplies have been unloaded from
+the ships. Supplies are stored in stacks of marked crates, but because the
+needed supplies are buried under many other crates, the crates need to be
+rearranged.
+
+The ship has a giant cargo crane capable of moving crates between stacks. To
+ensure none of the crates get crushed or fall over, the crane operator will
+rearrange them in a series of carefully-planned steps. After the crates are
+rearranged, the desired crates will be at the top of each stack.
+
+The Elves don't want to interrupt the crane operator during this delicate
+procedure, but they forgot to ask her which crate will end up where, and they
+want to be ready to unload them as soon as possible so they can embark.
+
+They do, however, have a drawing of the starting stacks of crates and the
+rearrangement procedure (your puzzle input). For example:
+
+    [D]
+[N] [C]
+[Z] [M] [P]
+ 1   2   3
+
+move 1 from 2 to 1
+move 3 from 1 to 3
+move 2 from 2 to 1
+move 1 from 1 to 2
+
+In this example, there are three stacks of crates. Stack 1 contains two crates:
+crate Z is on the bottom, and crate N is on top. Stack 2 contains three crates;
+from bottom to top, they are crates M, C, and D. Finally, stack 3 contains a
+single crate, P.
+
+Then, the rearrangement procedure is given. In each step of the procedure, a
+quantity of crates is moved from one stack to a different stack. In the first
+step of the above rearrangement procedure, one crate is moved from stack 2 to
+stack 1, resulting in this configuration:
+
+[D]
+[N] [C]
+[Z] [M] [P]
+ 1   2   3
+
+In the second step, three crates are moved from stack 1 to stack 3. Crates are
+moved one at a time, so the first crate to be moved (D) ends up below the second
+and third crates:
+
+        [Z]
+        [N]
+    [C] [D]
+    [M] [P]
+ 1   2   3
+
+Then, both crates are moved from stack 2 to stack 1. Again, because crates are
+moved one at a time, crate C ends up below crate M:
+
+        [Z]
+        [N]
+[M]     [D]
+[C]     [P]
+ 1   2   3
+
+Finally, one crate is moved from stack 1 to stack 2:
+
+        [Z]
+        [N]
+        [D]
+[C] [M] [P]
+ 1   2   3
+
+The Elves just need to know which crate will end up on top of each stack; in
+this example, the top crates are C in stack 1, M in stack 2, and Z in stack 3,
+so you should combine these together and give the Elves the message CMZ.
+
+After the rearrangement procedure completes, what crate ends up on top of each
+stack?
+*/
+component Day5Part1 {
+  const INPUT = @inline(../inputs/05)
+
+  const STACKS =
+    [
+      ["V", "C", "D", "R", "Z", "G", "B", "W"],
+      ["G", "W", "F", "C", "B", "S", "T", "V"],
+      ["C", "B", "S", "N", "W"],
+      ["Q", "G", "M", "N", "J", "V", "C", "P"],
+      ["T", "S", "L", "F", "D", "H", "B"],
+      ["J", "V", "T", "W", "M", "N"],
+      ["P", "F", "L", "C", "S", "T", "G"],
+      ["B", "D", "Z"],
+      ["M", "N", "Z", "W"]
+    ]
+
+  get result : String {
+    INPUT
+    |> String.split("\n")
+    |> Array.reduce(
+      STACKS,
+      (memo : Array(Array(String)), item : String) {
+        case (Regexp.matches(item, /\d+/g)) {
+          => memo
+
+          [a, b, c] =>
+            try {
+              quantity =
+                Number.fromString(a.match) or -1
+
+              from =
+                Number.fromString(b.match) or -1
+
+              to =
+                Number.fromString(c.match) or -1
+
+              fromStack =
+                memo[from - 1] or []
+
+              crates =
+                fromStack
+                |> Array.takeEnd(quantity)
+                |> Array.reverse()
+
+              newFromStack =
+                Array.slice(0, Array.size(fromStack) - quantity, fromStack)
+
+              toStack =
+                memo[to - 1] or []
+
+              newToStack =
+                Array.concat([toStack, crates])
+
+              memo
+              |> Array.setAt(from - 1, newFromStack)
+              |> Array.setAt(to - 1, newToStack)
+            }
+        }
+      })
+    |> Array.map(
+      (stack : Array(String)) {
+        Array.last(stack) or ""
+      })
+    |> String.join("")
+  }
+
+  fun render : String {
+    result
+  }
+}
+
+module Array {
+  /*
+  Takes the specified number of items from the end of the array.
+    Array.takeEnd(2, [1, 2, 3, 4]) == [3, 4]
+  */
+  fun takeEnd (number : Number, array : Array(item)) : Array(item) {
+    `#{array}.slice(-#{number})`
+  }
+
+  /*
+  Drop the specified number of items from the end of the array.
+    Array.dropEnd(2, [1, 2, 3, 4]) == [1, 2]
+  */
+  fun dropEnd (number : Number, array : Array(item)) : Array(item) {
+    `
+    (() => {
+      if (#{number} < 0) { return #{array} }
+      return #{array}.slice(0, -#{number})
+    })()
+    `
+  }
+}
