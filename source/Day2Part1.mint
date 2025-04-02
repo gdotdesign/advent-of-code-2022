@@ -68,7 +68,7 @@ component Day2Part1 {
     |> String.split("\n")
     |> Array.map(
       (item : String) {
-        case (item) {
+        case item {
           // Rock / Rock -> draw (1 + 3)
           "A X" => 4
 

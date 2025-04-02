@@ -58,20 +58,19 @@ component Day6Part1 {
   const INPUT = @inline(../inputs/06)
 
   get result : Number {
-    try {
-      splitted =
-        String.split("", INPUT)
+    let splitted =
+      String.split("", INPUT)
 
-      ((for (char, index of splitted) {
-        {
-          index + 4, (splitted
-          |> Array.slice(index, index + 4)
-          |> Set.fromArray()
-          |> Set.size) == 4
-        }
+    ((for char, index of splitted {
+      {
+        index + 4,
+        (splitted
+        |> Array.slice(index, index + 4)
+        |> Set.fromArray()
+        |> Set.size) == 4
       }
-      |> Array.select((item : Tuple(Number, Bool)) { item[1] }))[0] or {-1, true})[0]
     }
+    |> Array.select((item : Tuple(Number, Bool)) { item[1] }))[0] or {-1, true})[0]
   }
 
   fun render : String {

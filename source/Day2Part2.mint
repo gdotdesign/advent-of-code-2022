@@ -34,7 +34,7 @@ component Day2Part2 {
     |> String.split("\n")
     |> Array.map(
       (item : String) {
-        case (item) {
+        case item {
           // Rock / Lose -> Scissors (3 + 0)
           "A X" => 3
 

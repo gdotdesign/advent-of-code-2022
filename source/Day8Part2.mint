@@ -59,92 +59,83 @@ component Day8Part2 {
   const INPUT = @inline(../inputs/08)
 
   get data : Tuple(Array(Array(Number)), Array(Array(Number))) {
-    try {
-      grid =
-        INPUT
-        |> String.split("\n")
-        |> Array.reject(String.isBlank)
-        |> Array.map(
-          (row : String) {
+    let grid =
+      INPUT
+      |> String.split("\n")
+      |> Array.reject(String.isBlank)
+      |> Array.map(
+        (row : String) {
+          row
+          |> String.split("")
+          |> Array.map(
+            (item : String) {
+              item
+              |> Number.fromString
+              |> Maybe.withDefault(-1)
+            })
+        })
+
+    let center =
+      Math.ceil(Array.size(grid) / 2)
+
+    let solution =
+      for row, rowIndex of grid {
+        for item, columnIndex of row {
+          let toLeft =
             row
-            |> String.split("")
-            |> Array.map(
-              (item : String) {
-                item
-                |> Number.fromString
-                |> Maybe.withDefault(-1)
-              })
-          })
+            |> Array.slice(0, columnIndex)
+            |> Array.reverse
+            |> Array.selectUntil((cell : Number) { cell >= item })
+            |> Array.size
 
-      center =
-        Math.ceil(Array.size(grid) / 2)
+          let toRight =
+            row
+            |> Array.slice(columnIndex + 1, Array.size(row))
+            |> Array.selectUntil((cell : Number) { cell >= item })
+            |> Array.size
 
-      solution =
-        for (row, rowIndex of grid) {
-          for (item, columnIndex of row) {
-            try {
-              toLeft =
-                row
-                |> Array.slice(0, columnIndex)
-                |> Array.reverse
-                |> Array.selectUntil((cell : Number) { cell >= item })
-                |> Array.size
+          let toTop =
+            grid
+            |> Array.slice(0, rowIndex)
+            |> Array.map((items : Array(Number)) { items[columnIndex] })
+            |> Array.compact
+            |> Array.reverse
+            |> Debug.log
+            |> Array.selectUntil((cell : Number) { cell >= item })
+            |> Debug.log
+            |> Array.size
 
-              toRight =
-                row
-                |> Array.slice(columnIndex + 1, Array.size(row))
-                |> Array.selectUntil((cell : Number) { cell >= item })
-                |> Array.size
+          let toBottom =
+            grid
+            |> Array.slice(rowIndex + 1, Array.size(grid))
+            |> Array.map((items : Array(Number)) { items[columnIndex] })
+            |> Array.compact
+            |> Array.selectUntil((cell : Number) { cell >= item })
+            |> Array.size
 
-              toTop =
-                grid
-                |> Array.slice(0, rowIndex)
-                |> Array.map((items : Array(Number)) { items[columnIndex] })
-                |> Array.compact
-                |> Array.reverse
-                |> Debug.log
-                |> Array.selectUntil((cell : Number) { cell >= item })
-                |> Debug.log
-                |> Array.size
+          Debug.log(
+            {{rowIndex, columnIndex, item}, toTop, toLeft, toBottom, toRight})
 
-              toBottom =
-                grid
-                |> Array.slice(rowIndex + 1, Array.size(grid))
-                |> Array.map((items : Array(Number)) { items[columnIndex] })
-                |> Array.compact
-                |> Array.selectUntil((cell : Number) { cell >= item })
-                |> Array.size
-
-              Debug.log({{rowIndex, columnIndex, item}, toTop, toLeft, toBottom, toRight})
-              toTop * toLeft * toBottom * toRight
-            }
-          }
+          toTop * toLeft * toBottom * toRight
         }
+      }
 
-      ({grid, solution})
-    }
+    {grid, solution}
   }
 
   fun render : Html {
-    try {
-      x =
-        data
-
-      <div>
-        <{
-          Number.toString(
-            (x[1]
-            |> Array.concat
-            |> Array.max) or 0)
-        }>
-      </div>
-    }
+    <div>
+      Number.toString(
+        (data[1]
+        |> Array.concat
+        |> Array.max) or 0)
+    </div>
   }
 }
 
 module Array {
   /* Selects elements until (and including) the one that matches the function. */
-  fun selectUntil (method : Function(a, Bool), array : Array(a)) : Array(a) {
+  fun selectUntil (array : Array(a), method : Function(a, Bool)) : Array(a) {
     `
     (() => {
       const result = []

@@ -96,77 +96,50 @@ component Day5Part1 {
   get result : String {
     INPUT
     |> String.split("\n")
-    |> Array.reduce(
-      STACKS,
+    |> Array.reduce(STACKS,
       (memo : Array(Array(String)), item : String) {
-        case (Regexp.matches(item, /\d+/g)) {
-          => memo
-
+        case Regexp.matches(/\d+/g, item) {
           [a, b, c] =>
-            try {
-              quantity =
+            {
+              let quantity =
                 Number.fromString(a.match) or -1
 
-              from =
+              let from =
                 Number.fromString(b.match) or -1
 
-              to =
+              let to =
                 Number.fromString(c.match) or -1
 
-              fromStack =
+              let fromStack =
                 memo[from - 1] or []
 
-              crates =
+              let crates =
                 fromStack
                 |> Array.takeEnd(quantity)
                 |> Array.reverse()
 
-              newFromStack =
-                Array.slice(0, Array.size(fromStack) - quantity, fromStack)
+              let newFromStack =
+                Array.slice(fromStack, 0, Array.size(fromStack) - quantity)
 
-              toStack =
+              let toStack =
                 memo[to - 1] or []
 
-              newToStack =
+              let newToStack =
                 Array.concat([toStack, crates])
 
               memo
               |> Array.setAt(from - 1, newFromStack)
               |> Array.setAt(to - 1, newToStack)
             }
+
+          => memo
         }
       })
-    |> Array.map(
-      (stack : Array(String)) {
-        Array.last(stack) or ""
-      })
+    |> Array.map((stack : Array(String)) { Array.last(stack) or "" })
     |> String.join("")
   }
 
   fun render : String {
     result
-  }
-}
-
-module Array {
-  /*
-  Takes the specified number of items from the end of the array.
-    Array.takeEnd(2, [1, 2, 3, 4]) == [3, 4]
-  */
-  fun takeEnd (number : Number, array : Array(item)) : Array(item) {
-    `#{array}.slice(-#{number})`
-  }
-
-  /*
-  Drop the specified number of items from the end of the array.
-    Array.dropEnd(2, [1, 2, 3, 4]) == [1, 2]
-  */
-  fun dropEnd (number : Number, array : Array(item)) : Array(item) {
-    `
-    (() => {
-      if (#{number} < 0) { return #{array} }
-      return #{array}.slice(0, -#{number})
-    })()
-    `
   }
 }

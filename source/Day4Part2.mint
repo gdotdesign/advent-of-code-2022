@@ -25,38 +25,38 @@ component Day4Part2 {
     |> String.split("\n")
     |> Array.map(
       (item : String) {
-        case (String.split(",", item)) {
-          => Maybe::Nothing
-
+        case String.split(",", item) {
           [elf1, elf2] =>
-            try {
-              range1 =
+            {
+              let range1 =
                 range(elf1)
 
-              range2 =
+              let range2 =
                 range(elf2)
 
-              intersection =
-                if (Array.size(range1) < Array.size(range2)) {
-                  for (item of range1) {
+              let intersection =
+                if Array.size(range1) < Array.size(range2) {
+                  for item of range1 {
                     item
                   } when {
-                    Array.contains(item, range2)
+                    Array.contains(range2, item)
                   }
                 } else {
-                  for (item of range2) {
+                  for item of range2 {
                     item
                   } when {
-                    Array.contains(item, range1)
+                    Array.contains(range1, item)
                   }
                 }
 
-              if (Array.isEmpty(intersection)) {
-                Maybe::Nothing
+              if Array.isEmpty(intersection) {
+                Maybe.Nothing
               } else {
-                Maybe::Just("")
+                Maybe.Just("")
               }
             }
+
+          => Maybe.Nothing
         }
       })
     |> Array.compact
@@ -64,11 +64,11 @@ component Day4Part2 {
   }
 
   fun range (raw : String) : Array(Number) {
-    case (String.split("-", raw)) {
-      => []
-
+    case String.split("-", raw) {
       [start, end] =>
         Array.range(Number.fromString(start) or 0, Number.fromString(end) or 0)
+
+      => []
     }
   }
 

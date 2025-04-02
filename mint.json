@@ -5,11 +5,6 @@
     "title": "advent-of-code-2022",
     "icon": "assets/favicon.png"
   },
-  "external": {
-    "stylesheets": [
-      "assets/style.css"
-    ]
-  },
   "source-directories": [
     "source"
   ],

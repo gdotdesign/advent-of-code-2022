@@ -115,7 +115,7 @@ example, this process can count files more than once!)
 Find all of the directories with a total size of at most 100000. What is the
 sum of the total sizes of those directories?
 */
-enum Node {
+type Node {
   Directory(name : String, files : Array(Node))
   File(name : String, size : Number)
 }
@@ -124,104 +124,93 @@ component Day7Part1 {
   const INPUT = @inline(../inputs/07)
 
   fun addDirectory (dir : String, node : Node, cwd : Array(String)) {
-    case (node) {
-      Node::Directory(name, files) =>
-        case (cwd[0]) {
-          Maybe::Nothing =>
-            Node::Directory(
-              files = Array.push(Node::Directory(name = dir, files = []), files),
-              name = name)
+    case node {
+      Node.Directory(name, files) =>
+        case cwd[0] {
+          Maybe.Nothing =>
+            Node.Directory(
+              files: Array.push(files, Node.Directory(name: dir, files: [])),
+              name: name)
 
-          Maybe::Just(item) =>
-            Node::Directory(
-              name = name,
-              files =
-                Array.map(
+          Maybe.Just(item) =>
+            Node.Directory(
+              name: name,
+              files:
+                Array.map(files,
                   (node2 : Node) {
-                    case (node2) {
-                      Node::Directory(name, files) =>
-                        if (name == item) {
-                          addDirectory(dir, node2, Array.drop(1, cwd))
+                    case node2 {
+                      Node.Directory(name, files) =>
+                        if name == item {
+                          addDirectory(dir, node2, Array.dropStart(cwd, 1))
                         } else {
                           node2
                         }
 
-                      Node::File => node2
+                      Node.File => node2
                     }
-                  },
-                  files))
+                  }))
         }
 
-      Node::File => node
+      Node.File => node
     }
   }
 
-  fun addFile (
-    file : String,
-    size : Number,
-    node : Node,
-    cwd : Array(String)
-  ) {
-    case (node) {
-      Node::Directory(name, files) =>
-        case (cwd[0]) {
-          Maybe::Nothing =>
-            Node::Directory(
-              files = Array.push(Node::File(name = file, size = size), files),
-              name = name)
+  fun addFile (file : String, size : Number, node : Node, cwd : Array(String)) {
+    case node {
+      Node.Directory(name, files) =>
+        case cwd[0] {
+          Maybe.Nothing =>
+            Node.Directory(
+              files: Array.push(files, Node.File(name: file, size: size)),
+              name: name)
 
-          Maybe::Just(item) =>
-            Node::Directory(
-              name = name,
-              files =
-                Array.map(
+          Maybe.Just(item) =>
+            Node.Directory(
+              name: name,
+              files:
+                Array.map(files,
                   (node2 : Node) {
-                    case (node2) {
-                      Node::Directory(name, files) =>
-                        if (name == item) {
-                          addFile(file, size, node2, Array.drop(1, cwd))
+                    case node2 {
+                      Node.Directory(name, files) =>
+                        if name == item {
+                          addFile(file, size, node2, Array.dropStart(cwd, 1))
                         } else {
                           node2
                         }
 
-                      Node::File => node2
+                      Node.File => node2
                     }
-                  },
-                  files))
+                  }))
         }
 
-      Node::File => node
+      Node.File => node
     }
   }
 
   get root : Node {
-    try {
+    {
       INPUT
       |> String.split("\n")
-      |> Array.reduce(
-        {Node::Directory(name = "", files = []), [] of String},
+      |> Array.reduce({Node.Directory(name: "", files: []), [] of String},
         (memo : Tuple(Node, Array(String)), line : String) {
-          try {
-            {root, cwd} =
+          {
+            let {root, cwd} =
               memo
 
-            case (`#{line}[0]` as String) {
+            case `#{line}[0]` as String {
               "$" =>
-                case (`#{line}.slice(2, 4)` as String) {
+                case `#{line}.slice(2, 4)` as String {
                   "cd" =>
-                    try {
-                      dir =
+                    {
+                      let dir =
                         `#{line}.slice(5)` as String
 
-                      case (dir) {
-                        ".." =>
-                          {root, Array.dropEnd(1, cwd)}
+                      case dir {
+                        ".." => {root, Array.dropEnd(cwd, 1)}
 
-                        "/" =>
-                          {root, []}
+                        "/" => {root, []}
 
-                        =>
-                          {root, Array.push(dir, cwd)}
+                        => {root, Array.push(cwd, dir)}
                       }
                     }
 
@@ -229,13 +218,18 @@ component Day7Part1 {
                 }
 
               =>
-                try {
-                  {head, name} =
+                {
+                  let {head, name} =
                     `#{line}.split(" ")` as Tuple(String, String)
 
-                  case (head) {
+                  case head {
                     "dir" => {addDirectory(name, root, cwd), cwd}
-                    => {addFile(name, Number.fromString(head) or 0, root, cwd), cwd}
+
+                    =>
+                      {
+                        addFile(name, Number.fromString(head) or 0, root, cwd),
+                        cwd
+                      }
                   }
                 }
             }
@@ -248,57 +242,50 @@ component Day7Part1 {
     memo : Tuple(Number, Array(Tuple(String, Number))),
     node : Node
   ) : Tuple(Number, Array(Tuple(String, Number))) {
-    case (node) {
-      Node::File(size) => {memo[0] + size, memo[1]}
+    case node {
+      Node.File(_, size) => {memo[0] + size, memo[1]}
 
-      Node::Directory(name, files) =>
-        try {
-          item =
-            Array.reduce({0, []}, sum, files)
+      Node.Directory(name, files) =>
+        {
+          let item =
+            Array.reduce(files, {0, []}, sum)
 
-          subs =
-            for (x of item[1]) {
+          let subs =
+            for x of item[1] {
               ({"#{name}/#{x[0]}", x[1]})
             }
 
-          ({memo[0] + item[0], Array.concat([[{name, item[0]}], memo[1], subs])})
+          {memo[0] + item[0], Array.concat([[{name, item[0]}], memo[1], subs])}
         }
     }
   }
 
   fun renderNode (node : Node) : Html {
-    case (node) {
-      Node::Directory(name, files) =>
+    case node {
+      Node.Directory(name, files) =>
         <details>
-          <summary>
-            <{ name }>
-          </summary>
+          <summary><>name</></summary>
 
           <div style="padding-left: 20px">
-            for (item of files) {
+            for item of files {
               renderNode(item)
             }
           </div>
         </details>
 
-      Node::File(name, size) =>
-        <div>
-          <{ "#{name}: #{size}" }>
-        </div>
+      Node.File(name, size) => <div><>"#{name}: #{size}"</></div>
     }
   }
 
   fun render : Html {
     <div>
-      <{ renderNode(root) }>
+      renderNode(root)
 
-      try {
-        sum({0, []}, root)[1]
-        |> Array.select((item : Tuple(String, Number)) { item[1] <= 100000 })
-        |> Array.map((item : Tuple(String, Number)) { item[1] })
-        |> Array.sum
-        |> Number.toString
-      }
+      sum({0, []}, root)[1]
+      |> Array.select((item : Tuple(String, Number)) { item[1] <= 100000 })
+      |> Array.map((item : Tuple(String, Number)) { item[1] })
+      |> Array.sum
+      |> Number.toString
     </div>
   }
 }

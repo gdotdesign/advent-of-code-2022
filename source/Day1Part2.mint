@@ -31,7 +31,7 @@ component Day1Part2 {
         |> Array.sum
       })
     |> Array.sortBy((sum : Number) { -sum })
-    |> Array.take(3)
+    |> Array.takeStart(3)
     |> Array.sum
   }
 

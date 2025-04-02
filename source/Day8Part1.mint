@@ -54,100 +54,91 @@ component Day8Part1 {
   const INPUT = @inline(../inputs/08)
 
   get data : Tuple(Array(Array(Number)), Array(Array(Bool))) {
-    try {
-      grid =
-        INPUT
-        |> String.split("\n")
-        |> Array.reject(String.isBlank)
-        |> Array.map(
-          (row : String) {
-            row
-            |> String.split("")
-            |> Array.map(
-              (item : String) {
-                item
-                |> Number.fromString
-                |> Maybe.withDefault(-1)
-              })
-          })
+    let grid =
+      INPUT
+      |> String.split("\n")
+      |> Array.reject(String.isBlank)
+      |> Array.map(
+        (row : String) {
+          row
+          |> String.split("")
+          |> Array.map(
+            (item : String) {
+              item
+              |> Number.fromString
+              |> Maybe.withDefault(-1)
+            })
+        })
 
-      center =
-        Math.ceil(Array.size(grid) / 2)
+    let center =
+      Math.ceil(Array.size(grid) / 2)
 
-      solution =
-        for (row, rowIndex of grid) {
-          for (item, columnIndex of row) {
-            try {
-              visibleFromLeft =
-                Maybe.withDefault(-1, Array.max(Array.slice(0, columnIndex, row))) < item
+    let solution =
+      for row, rowIndex of grid {
+        for item, columnIndex of row {
+          let visibleFromLeft =
+            Maybe.withDefault(Array.max(Array.slice(row, 0, columnIndex)), -1) < item
 
-              visibleFromRight =
-                Maybe.withDefault(-1, Array.max(Array.slice(columnIndex + 1, Array.size(row), row))) < item
+          let visibleFromRight =
+            Maybe.withDefault(
+              Array.max(Array.slice(row, columnIndex + 1, Array.size(row))), -1) < item
 
-              visibleFromTop =
-                (grid
-                |> Array.slice(0, rowIndex)
-                |> Array.map((items : Array(Number)) { items[columnIndex] })
-                |> Array.compact
-                |> Array.max
-                |> Maybe.withDefault(-1)) < item
+          let visibleFromTop =
+            (grid
+            |> Array.slice(0, rowIndex)
+            |> Array.map((items : Array(Number)) { items[columnIndex] })
+            |> Array.compact
+            |> Array.max
+            |> Maybe.withDefault(-1)) < item
 
-              visibleFromBottom =
-                (grid
-                |> Array.slice(rowIndex + 1, Array.size(grid))
-                |> Array.map((items : Array(Number)) { items[columnIndex] })
-                |> Array.compact
-                |> Array.max
-                |> Maybe.withDefault(-1)) < item
+          let visibleFromBottom =
+            (grid
+            |> Array.slice(rowIndex + 1, Array.size(grid))
+            |> Array.map((items : Array(Number)) { items[columnIndex] })
+            |> Array.compact
+            |> Array.max
+            |> Maybe.withDefault(-1)) < item
 
-              visibleFromLeft || visibleFromRight || visibleFromTop || visibleFromBottom
-            }
-          }
+          visibleFromLeft || visibleFromRight || visibleFromTop || visibleFromBottom
         }
+      }
 
-      ({grid, solution})
-    }
+    {grid, solution}
   }
 
   fun render : Html {
-    try {
-      x =
-        data
+    let x =
+      data
 
-      <div>
-        <{
-          Number.toString(
-            x[1]
-            |> Array.concat
-            |> Array.select((item : Bool) { item })
-            |> Array.size)
-        }>
+    <div>
+      <>
+        Number.toString(
+          x[1]
+          |> Array.concat
+          |> Array.select((item : Bool) { item })
+          |> Array.size)
+      </>
 
-        <details open="true">
-          <summary>"Table"</summary>
+      <details open="true">
+        <summary>"Table"</summary>
 
-          <table>
-            for (row, rowIndex of x[0]) {
-              <tr>
-                for (item, columnIndex of row) {
-                  try {
-                    styles =
-                      if (((x[1][rowIndex] or [])[columnIndex]) or false) {
-                        "color: green"
-                      } else {
-                        "color: red"
-                      }
-
-                    <td style={styles}>
-                      <{ "#{item}" }>
-                    </td>
+        <table>
+          for row, rowIndex of x[0] {
+            <tr>
+              for item, columnIndex of row {
+                let styles =
+                  if ((x[1][rowIndex] or [])[columnIndex]) or false {
+                    "color: green"
+                  } else {
+                    "color: red"
                   }
-                }
-              </tr>
-            }
-          </table>
-        </details>
-      </div>
-    }
+
+                <td style={styles}><>"#{item}"</></td>
+              }
+            </tr>
+          }
+        </table>
+      </details>
+    </div>
   }
 }
